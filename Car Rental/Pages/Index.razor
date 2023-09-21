@@ -1,0 +1,100 @@
+﻿@page "/"
+@using Car_Rental.Business.Classes
+@using Car_Rental.Common.Classes;
+@using Car_Rental.Common.Interfaces;
+@inject BookingProcessor bp
+
+<PageTitle>Car Rental Assignment</PageTitle>
+
+<h1>Car Rental Assignment</h1>
+
+<h2>Vehicles</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">RegNo</th>
+            <th scope="col">Make</th>
+            <th scope="col">Odometer</th>
+            <th scope="col">Cost km</th>
+            <th scope="col">Vehicle type</th>
+            <th scope="col">$ Day</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (IVehicle v in bp.GetVehicles(VehicleStatuses.Available))
+        {
+            <tr>
+                <td class="fw-bold">@v.RegNo</td>
+                <td>@v.Make</td>
+                <td>@v.Odometer</td>
+                <td>@v.CostKM</td>
+                <td>@v.VehicleType.ToString()</td>
+                <td>@v.CostPerDay</td>
+                <td> <span class="badge @(v.Status==VehicleStatuses.Available? "bg-dark" : "bg-danger") 
+                    rounded-pill"> @v.Status.ToString() </span></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Bookings</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">RegNo</th>
+            <th scope="col">Customer</th>
+            <th scope="col">KM rented</th>
+            
+            <th scope="col">KM returned</th>
+            <th scope="col">Rented</th>
+            <th scope="col">Returned</th>
+            
+            <th scope="col">Cost</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (IBooking b in bp.GetBookings())
+        {
+            <tr>
+                <td class="fw-bold">@b.Vehicle.RegNo</td>
+                <td>@b.Customer.FirstName @b.Customer.LastName (@b.Customer.SSN)</td>
+                <td>@b.KmStart</td>
+                
+                <td>@b.KmReturn</td>
+                <td>@b.Rented.ToShortDateString()</td>
+                <td>@b.Returned?.ToShortDateString()</td>
+
+                <td>@b.Cost</td>
+                <td><span class="badge bg-@(b.Status == VehicleStatuses.Available? "success" : "danger")">@b.Status</span></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<h2>Customers</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">SSN</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">First Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Customer c in bp.GetCustomers())
+        {
+            <tr>
+                <td class="fw-bold">@c.SSN</td>
+                <td>@c.LastName</td>
+                <td>@c.FirstName</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+
