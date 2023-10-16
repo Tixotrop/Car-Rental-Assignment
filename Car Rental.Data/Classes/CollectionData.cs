@@ -2,19 +2,12 @@
 using Car_Rental.Common.Enums;
 using Car_Rental.Common.Interfaces;
 using Car_Rental.Data.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace Car_Rental.Data.Classes;
 
-public class CollectionData : IData 
+public class CollectionData : IData
 {
-    readonly List<IPerson> _persons = new List<IPerson>();
-    readonly List<IVehicle> _vehicles = new List<IVehicle>();
-    readonly List<IBooking> _bookings = new List<IBooking>();
 
     public CollectionData() => SeedData();
 
@@ -33,17 +26,54 @@ public class CollectionData : IData
         _vehicles.Add(jeep);
         _vehicles.Add(new Motorcycle("MNO234", "Yamaha", 30000, 0.5, 50, VehicleStatuses.Available));
 
+        IBooking booking1 = new Bookings(tesla, john);
+        IBooking booking2 = new Bookings(jeep, jane);
+        jeep.Odometer = 5200;
+        booking2.ReturnVehicle(jeep);
 
-        IBooking booking1 = new Bookings(tesla, john, 1000, null, new DateTime(2023, 9, 9),
-            null, VehicleStatuses.Booked);
-        IBooking booking2 = new Bookings(jeep, jane, 5000, 5000, new DateTime(2023, 9, 9),
-            new DateTime(2023, 9, 9), VehicleStatuses.Available);
         _bookings.Add(booking1);
         _bookings.Add(booking2);
     }
 
-    public IEnumerable<IPerson> GetPersons() =>  _persons;
+    public IEnumerable<IPerson> GetPersons() => _persons;
     public IEnumerable<IBooking> GetBooking() => _bookings;
-    public IEnumerable<IVehicle> GetVehicles(VehicleStatuses status = default) => _vehicles;
+    public IEnumerable<IVehicle> GetVehicles(VehicleStatuses status = default) => _vehicles.Where(v => v.Status == status);
+
+    readonly List<IPerson> _persons = new List<IPerson>();
+    readonly List<IVehicle> _vehicles = new List<IVehicle>();
+    readonly List<IBooking> _bookings = new List<IBooking>();
+
+    public void Add<T>(T item)
+    {
+        // Will be modified later: 
+        switch (item)
+        {
+            case IPerson person:
+                _persons.Add(person);
+                break;
+            case IVehicle vehicle:
+                _vehicles.Add(vehicle);
+                break;
+
+            case IBooking booking:
+                _bookings.Add(booking);
+                break;
+            default: break;
+        }
+    }
+
+
+    public List<T> Get<T>(Expression<Func<T, bool>>? expression)
+    {
+        // Not developed yet.
+        throw new NotImplementedException();
+    }
+
+    private List<T> Get<T>(List<T> list, Expression<Func<T, bool>>? expression)
+    {
+        // Not developed yet.
+        throw new NotImplementedException();
+    }
+
 
 }

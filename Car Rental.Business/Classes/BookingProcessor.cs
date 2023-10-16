@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Car_Rental.Common.Classes;
+﻿using Car_Rental.Common.Classes;
 using Car_Rental.Common.Enums;
 using Car_Rental.Common.Interfaces;
 using Car_Rental.Data.Interfaces;
@@ -14,8 +9,10 @@ public class BookingProcessor
 {
     private readonly IData _db;
 
-    public BookingProcessor(IData db) => _db = db;
-
+    public BookingProcessor(IData db)
+    {
+        _db = db;
+    }
     public IEnumerable<Customer> GetCustomers()
     {
         return _db.GetPersons().Cast<Customer>().ToList();
@@ -30,4 +27,9 @@ public class BookingProcessor
     {
         return _db.GetBooking();
     }    
+
+    public void AddCustomer(Customer customer)
+    {
+        _db.Add<Customer>(customer);
+    }
 }
