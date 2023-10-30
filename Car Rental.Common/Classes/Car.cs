@@ -1,37 +1,17 @@
 ﻿using Car_Rental.Common.Enums;
 using Car_Rental.Common.Interfaces;
+using System.Reflection;
 
 namespace Car_Rental.Common.Classes;
 
 
 // Car and mc extends vehicle
-public class Car : IVehicle
+public class Car : Vehicle
 {
-    
-    public string RegNo { get; } = string.Empty;
+    public Car(Vehicle vehicle) : base(vehicle) { }
 
-    public string Make { get; } = string.Empty;
-
-    public int Odometer { get; set; }
-
-    public double CostKM { get; set; }
-
-    public VehicleTypes VehicleType { get; }
-
-    public int CostPerDay { get; set; }
-
-    public VehicleStatuses Status { get; set; }
-
-    public Car(string regNo, string make, int odometer, double costKM,
-        VehicleTypes vehicleType, int costPerDay, VehicleStatuses status)
+    public Car(int id, string regNo, string make, double odometer, double costKM, VehicleTypes vehicleType, int costPerDay, VehicleStatuses status) 
+        : base(id, regNo, make, odometer, costKM, vehicleType, costPerDay, status)
     {
-        RegNo = regNo;
-        Make = make;
-        Odometer = odometer;
-        CostKM = costKM;
-        VehicleType = vehicleType;
-        CostPerDay = costPerDay;
-        Status = status;
     }
-
 }

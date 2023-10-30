@@ -2,6 +2,7 @@ using Car_Rental;
 using Car_Rental.Business.Classes;
 using Car_Rental.Data.Classes;
 using Car_Rental.Data.Interfaces;
+using Car_Rental.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -11,12 +12,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-//BookingProcessor bp = new BookingProcessor(new CollectionData());
-//builder.Services.AddSingleton(bp);
-
+// Singleton, Scoped, Transient 
 builder.Services.AddSingleton<IData, CollectionData>();
 builder.Services.AddSingleton<BookingProcessor>();
+builder.Services.AddSingleton<Rental>();
 
-// Singleton, Scoped, Transient 
+
+
 
 await builder.Build().RunAsync();

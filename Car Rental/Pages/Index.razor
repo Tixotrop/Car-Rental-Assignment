@@ -2,27 +2,77 @@
 @using Car_Rental.Business.Classes
 @using Car_Rental.Common.Classes;
 @using Car_Rental.Common.Interfaces;
+@using Car_Rental.Services;
 @inject BookingProcessor bp
+@inject Rental rental
 
 <PageTitle>Car Rental Assignment</PageTitle>
 
 <h1>Car Rental Assignment</h1>
 
+@if (!string.IsNullOrEmpty(rental.error))
+{
+    <div class="mb-4 alert alert-danger">
+        <strong>Error</strong> @rental.error
+    </div>
+
+}
+
 <h2>Vehicles</h2>
 <table class="table table-striped">
     <thead>
         <tr>
-            <th scope="col">RegNo</th>
-            <th scope="col">Make</th>
-            <th scope="col">Odometer</th>
-            <th scope="col">Cost km</th>
-            <th scope="col">Vehicle type</th>
-            <th scope="col">$ Day</th>
-            <th scope="col">Status</th>
+            <th scope="col" class="col-1">RegNo</th>
+            <th scope="col" class="col-1">Make</th>
+            <th scope="col" class="col-1">Odometer</th>
+            <th scope="col" class="col-1">Cost km</th>
+            <th scope="col" class="col-1">Vehicle type</th>
+            <th scope="col" class="col-1">$ Day</th>
+            <th scope="col" class="col-3">Action</th>
+            <th scope="col" class="col-1">Status</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (IVehicle v in bp.GetVehicles(VehicleStatuses.Available))
+        <tr>
+            <td class="ps-0">
+                <input id="RegNo" type="text" class="form-control" @bind=rental.newVehicle.RegNo />
+            </td>
+            <td class="ps-0">
+                <input id="Make" type="text" class="form-control" @bind=rental.newVehicle.Make />
+            </td>
+            <td class="ps-0">
+                <input id="Odometer" type="number" class="form-control" @bind=rental.newVehicle.Odometer />
+            </td>
+            <td class="ps-0">
+                <input id="CostKM" type="number" class="form-control" @bind=rental.newVehicle.CostKM />
+            </td>
+            <td>
+                <select id="dropDownNewCar" class="form-select" disabled=@rental.disableInput @bind="@rental.newVehicle.VehicleType">
+                  
+                    @foreach (VehicleTypes vehicleType in Enum.GetValues(typeof(VehicleTypes)))
+                    {
+                        <option value=@vehicleType>@vehicleType.ToString()</option>
+                    }
+                </select>
+            </td>
+            <td class="ps-0">
+                <input id="CostPerDay" type="text" class="form-control" @bind=rental.newVehicle.CostPerDay />
+            </td>
+            <td class="ps-0 d-inline-flex w-100">
+                <button type="button" class="btn btn-success" disabled=@rental.disableInput  @onclick=@rental.AddVehicle>
+                    Add
+                </button>
+            </td>
+            <td>
+                @if(rental.disableInput)
+                {
+                    <span class="badge bg-warning">
+                        Processing
+                    </span>
+                }
+            </td>
+        </tr>
+        @foreach (Vehicle v in bp.GetVehicles())
         {
             <tr>
                 <td class="fw-bold">@v.RegNo</td>
@@ -31,9 +81,26 @@
                 <td>@v.CostKM</td>
                 <td>@v.VehicleType.ToString()</td>
                 <td>@v.CostPerDay</td>
+                <td class="ps-0 d-inline-flex w-100">
+                    @if (v.Status == VehicleStatuses.Available)
+                    {
+                        <select id="@v.RegNo" class="form-select" @bind=rental.rentingCustomer>
+                            @foreach (IPerson person in bp.GetCustomers())
+                            {
+                                <option value="@person.Id">@person.ToString()</option>
+
+                            }
+                        </select>
+                        <button type="button" class="btn btn-outline-primary" disabled=@rental.disableInput @onclick=@(() => rental.RentVehicle(v.Id))>Rent</button>
+                    }
+                    else
+                    {
+                        <input id="kmDrived" type="number" @bind=rental.kmDrived/>
+                        <button type="button" class="btn btn-outline-success" @onclick=@(() => rental.ReturnVehicle(v.Id))>Return</button>
+                    }
+                </td>
                 <td>
-                    <span class="badge @(v.Status==VehicleStatuses.Available? "bg-dark" : "bg-danger")
-                    rounded-pill"> @v.Status.ToString() </span>
+                    <span class="badge @(v.Status==VehicleStatuses.Available? "bg-dark" : "bg-danger")"> @v.Status.ToString() </span>
                 </td>
             </tr>
         }
@@ -89,14 +156,14 @@
     <tbody>
         <tr>
             <td class="ps-0">
-                <input id="ssn" type="text" class="form-control" @bind=newCustomer.SSN />
+                <input id="ssn" type="text" class="form-control" @bind=rental.newCustomer.SSN />
             </td>
             <td class="ps-0">
-                <input id="lastName" type="text" class="form-control" @bind=newCustomer.LastName />
+                <input id="lastName" type="text" class="form-control" @bind=rental.newCustomer.LastName />
             </td>
             <td class="ps-0 d-inline-flex w-100">
-                <input id="firstName" type="text" class="form-control" @bind=newCustomer.FirstName />
-                <button type="button" class="btn btn-success" @onclick=@AddCustomer>
+                <input id="firstName" type="text" class="form-control" @bind=rental.newCustomer.FirstName />
+                <button type="button" class="btn btn-success" @onclick=@rental.AddCustomer>
                     Add
                 </button>
             </td>
@@ -113,7 +180,13 @@
 </table>
 
 @code {
+    /*
     Customer newCustomer = new();
+    int rentingCustomer = 0;
+    Vehicle newVehicle = new();
+    string error = string.Empty;
+    bool disableInput = false;
+    double kmDrived;
 
     protected override void OnInitialized()
     {
@@ -122,17 +195,52 @@
 
     void AddCustomer()
     {
+        error = string.Empty;
         if (Valid(newCustomer.SSN) && Valid(newCustomer.FirstName) && Valid(newCustomer.LastName))
         {
             bp.AddCustomer(newCustomer);
             newCustomer = new();
         }
+        else
+        {
+            error = "Could not add customer";
+        }
+
+    }
+
+    void AddVehicle()
+    {
+        error = string.Empty;
+        if (Valid(newVehicle.Make) && Valid(newVehicle.RegNo))
+        {
+            bp.AddVehicle(newVehicle);
+            newVehicle = new();
+        }
+        else
+        {
+            error = "Could not add vehicle";
+        }
+    }
+
+    async Task RentVehicle(int vehicleId)
+    {
+        error = string.Empty;
+        disableInput = true;
+        disableInput = ! await bp.RentVehicle(vehicleId, rentingCustomer);
+    }
+
+    void ReturnVehicle(int vehicleId)
+    {
+        error = string.Empty;
+        bp.ReturnVehicle(vehicleId, kmDrived);
+        kmDrived = 0;
     }
 
     private bool Valid(string str)
     {
         return !string.IsNullOrEmpty(str);
     }
+    */
 }
 
 

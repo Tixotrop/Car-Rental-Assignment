@@ -2,7 +2,8 @@
 {
     public interface IPerson
     {
-        // SSN, firstName, lastName
+        public int Id { get; }
+
         public string SSN { get;  }
         public string FirstName { get; }
 
